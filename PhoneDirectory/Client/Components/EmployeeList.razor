@@ -1,0 +1,74 @@
+﻿@inject IEmployeeRepository employeeRepository
+
+<div class="form">
+    <div class="row">
+        <div class="col">
+            <input @ref="searchInput" autocomplete="off" placeholder="Begin typing to filter list" type="text" @bind-value="searchTerm" @bind-value:event="oninput" @onkeyup="SearchAsync" class="form-control" aria-label="Employee Search">
+        </div>
+    </div>
+</div>
+
+@if(employees == null){
+    <div class="row my-3">
+        <div class="col">
+            <img src="images/loading.gif" />
+        </div>
+    </div>
+}
+else if(employees.Count == 0){
+    @:No results
+}
+else
+{
+    <EmployeeListHeader />
+    <div class="zebra-striped">
+    @foreach (var employee in employees.OrderBy(o => o.LastName))
+        {
+           <IndividualEmployee Delete="ExecuteDeleteAsync" Employee="employee" Admin="Admin" />
+        }
+    </div>
+}
+@code {
+    [Parameter]
+    public bool Admin { get; set; }
+    [Parameter]
+    public EventCallback<int> Delete { get; set; }
+
+    private string? searchTerm;
+
+    private List<Employee>? employees;
+
+    private ElementReference searchInput;
+
+    protected async override Task OnInitializedAsync()
+    {
+        employees = await employeeRepository.GetAll();
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await searchInput.FocusAsync();
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+
+    private async Task ExecuteDeleteAsync(int id){
+        await Delete.InvokeAsync(id);
+        searchTerm = null;
+        await SearchAsync();
+ 
+    }
+
+
+    private async Task SearchAsync()
+    {
+        if (!string.IsNullOrEmpty(searchTerm))
+            employees = await employeeRepository.Search(searchTerm);
+        else
+            employees = await employeeRepository.GetAll();
+    }
+}

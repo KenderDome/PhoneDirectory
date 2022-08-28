@@ -1,0 +1,43 @@
+﻿<div class="row my-4 my-md-2 py-2">
+    <div class="col-12 col-md-2">
+        <span class="d-md-none"><strong>Name: </strong></span> @Employee.FirstName @Employee.LastName
+    </div>
+    <div class="col-12 col-md-2">
+        <span class="d-md-none"><strong>Phone 1: </strong></span> @Employee.Phone1
+    </div>
+    <div class="col-12 col-md-2">
+        <span class="d-md-none"><strong>Phone 2: </strong></span> @Employee.Phone2
+    </div>
+    <div class="col-12 col-md-1">
+        <span class="d-md-none"><strong>Ext.: </strong></span> @Employee.Extension
+    </div>
+    <div class="col-12 col-md-3">
+        <span class="d-md-none"><strong>Title: </strong></span> @Employee.EmployeeType.Title.ToString().Replace("_", " ")
+    </div>
+    <div class="col-12 col-md-2">
+        @if (Admin)
+        {
+            <a href="admin/editemployee/@Employee.Id" class="btn btn-primary">Edit</a>
+            <button @onclick="DeleteEmployee" type="button" class="btn btn-danger">Delete</button>
+        }
+        else{
+            <a href="employeedetail/@Employee.Id" class="btn btn-primary">View Details</a>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool Admin { get; set; }
+
+    [Parameter]
+    public EventCallback<int> Delete { get; set; }
+    [Parameter]
+    public Employee? Employee { get; set; }
+
+
+
+    private void DeleteEmployee(){
+        Delete.InvokeAsync(Employee.Id);
+    }
+}

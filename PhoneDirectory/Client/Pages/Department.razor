@@ -1,0 +1,49 @@
+﻿@page "/department/{Name}"
+@inject IDepartmentRepository departmentRepository
+
+
+<PageTitle>@Name Department</PageTitle>
+
+<h1>@Name Department</h1>
+
+<EmployeeListHeader />
+
+@if(employees == null){
+    <img src="images/loading.gif" />
+}
+else{
+    <div class="zebra-striped">
+        @foreach (var employee in employees.OrderBy(o => o.EmployeeType.DisplayOrder).ThenBy(t => t.LastName))
+        {
+            <IndividualEmployee Employee="employee" />
+        
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? Name { get; set; }
+
+    List<Employee>? employees;
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Name))
+            employees = await departmentRepository.GetEmployees(Name);
+
+        await base.OnInitializedAsync();
+    }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        employees = null;
+
+        if (!string.IsNullOrEmpty(Name))
+            employees = await departmentRepository.GetEmployees(Name);
+
+        await base.OnParametersSetAsync();
+    }
+
+
+}

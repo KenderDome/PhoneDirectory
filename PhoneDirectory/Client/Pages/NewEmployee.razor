@@ -1,0 +1,139 @@
+﻿@page "/admin/newemployee"
+@attribute [Authorize]
+
+@inject IEmployeeRepository employeeRepository
+@inject IDepartmentRepository departmentRepository
+@inject IEmployeeTypeRepository employeeTypeRepository
+@inject IDisplayMessage displayMessage
+@inject NavigationManager navigationManager
+
+<h3>New Employee</h3>
+<EditForm Model="employee" OnValidSubmit="AddEmployee">
+    <DataAnnotationsValidator />
+    <div class="form-group my-3">
+        <label for="first-name">First Name:</label>
+        <InputText id="first-name" @bind-Value="employee.FirstName" class="form-control" />
+    </div>
+    <div class="form-group my-3">
+        <label for="last-name">Last Name:</label>
+        <InputText id="last-name" @bind-Value="employee.LastName" class="form-control" />
+    </div>
+    <div class="form-group my-3">
+        <label for="title">Title:</label>
+        <select id="title" @onchange="(eventargs) => SelectTitle(eventargs)" class="form-control">
+            @if (employeeTypes != null)
+            {
+                <option value="">Select...</option>
+                @foreach (var employeeType in employeeTypes)
+                {
+                    <option selected="@(employee.EmployeeTypeId == employeeType.EmployeeTypeId)" value="@employeeType.EmployeeTypeId">@employeeType.Title.ToString().Replace("_", " ")</option>
+                }
+            }
+            }
+        </select>
+    </div>
+    <div class="form-group my-3">
+        <label for="title">Department:</label>
+        <div class="list-group">
+
+            @if (departments != null)
+            {
+                foreach (var department in departments)
+                {
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" @onchange="(eventargs)=>SelectDepartment(eventargs, department.Id)" type="checkbox" value="@department.Id">
+                        @department.Name
+                    </label>
+                }
+            }
+        </div>
+    </div>
+    <div class="form-group my-3">
+        <label for="first-name">Phone 1:</label>
+        <InputText id="phone-1" @bind-Value="employee.Phone1" class="form-control" />
+    </div>
+    <div class="form-group my-3">
+        <label for="last-name">Phone 2:</label>
+        <InputText id="phone-2" @bind-Value="employee.Phone2" class="form-control" />
+    </div>
+    <div class="form-group my-3">
+        <label for="extension">Extension:</label>
+        <InputNumber id="extension" @bind-Value="employee.Extension" class="form-control" />
+    </div>
+    <div class="form-group my-3">
+        <label for="email">Email:</label>
+        <InputText id="email" @bind-Value="employee.Email" class="form-control" />
+    </div>
+    <div class="form-group my-3">
+        <label for="notes">Notes:</label>
+        <InputTextArea id="notes" @bind-Value="employee.Notes" class="form-control" />
+    </div>
+    <div class="form-group my-3">
+        <button type="submit" class="btn btn-primary">Add</button>
+    </div>
+
+    <ValidationSummary />
+</EditForm>
+
+
+@code {
+    private Employee employee = new Employee() { Departments = new List<PhoneDirectory.Shared.Entities.Department>() };
+    private List<EmployeeType>? employeeTypes;
+    private List<PhoneDirectory.Shared.Entities.Department>? departments;
+
+    protected async override Task OnInitializedAsync()
+    {
+        employeeTypes = await employeeTypeRepository.GetAll();
+
+        departments = await departmentRepository.GetAll();
+
+        await base.OnInitializedAsync();
+    }
+
+    private void SelectTitle(ChangeEventArgs args)
+    {
+
+        int id = Convert.ToInt16(args.Value);
+
+        if (employee != null)
+            employee.EmployeeTypeId = id;
+    }
+
+    private void SelectDepartment(ChangeEventArgs args, int id)
+    {
+        bool selected = Convert.ToBoolean(args.Value);
+
+        if (employee != null && departments != null)
+        {
+            if (selected)
+            {
+                employee.Departments.Add(departments.Where(w => w.Id == id).First());
+            }
+            else
+            {
+                employee.Departments.Remove(employee.Departments.Where(w => w.Id == id).First());
+            }
+        }
+
+
+    }
+
+    private async Task AddEmployee()
+    {
+
+        try
+        {
+            if (employee != null)
+                await employeeRepository.Add(employee);
+
+            await displayMessage.ShowSuccessMessage("Success", "Employee created.");
+
+            navigationManager.NavigateTo("admin");
+        }
+        catch (Exception ex)
+        {
+            await displayMessage.ShowErrorMessage("Error", ex.Message);
+        }
+
+    }
+}

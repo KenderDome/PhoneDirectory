@@ -1,0 +1,93 @@
+﻿@page "/employeedetail/{id:int}"
+
+@inject IEmployeeRepository employeeRepository
+
+@if(employee == null){
+    <img src="images/loading.gif" />
+}
+else{
+    <h3>@employee.FirstName @employee.LastName, @employee.EmployeeType.Title.ToString().Replace("_", " ")</h3>
+    <hr />
+    if (employee.EmployeeType != null)
+    {
+        <div class="row">
+            <div class="col-12 col-md-2">
+                <h5>Department(s)</h5>
+            </div>
+            <div class="col">
+                @if (employee.Departments != null)
+                {
+                    foreach (var department in employee.Departments)
+                    {
+                        <p class="m-0">@department.Name</p>
+                    }
+
+                }
+            </div>
+        </div>
+    }
+
+    <div class="row my-2">
+        <div class="col-12 col-md-2">
+            <h5>Phone 1:</h5>
+        </div>
+        <div class="col">
+            @employee.Phone1
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <div class="col-12 col-md-2">
+            <h5>Phone 2:</h5>
+        </div>
+        <div class="col">
+            @employee.Phone2
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <div class="col-12 col-md-2">
+            <h5>Ext:</h5>
+        </div>
+        <div class="col">
+            @employee.Extension
+        </div>
+    </div>
+
+
+    <div class="row my-2">
+        <div class="col-12 col-md-2">
+            <h5>Email:</h5>
+        </div>
+        <div class="col">
+            @employee.Email
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <div class="col-12 col-md-2">
+            <h5>Notes:</h5>
+        </div>
+        <div class="col">
+            @employee.Notes
+        </div>
+    </div>
+
+
+
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private Employee? employee;
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        employee = await employeeRepository.Get(id);
+
+        await base.OnInitializedAsync();
+    }
+}

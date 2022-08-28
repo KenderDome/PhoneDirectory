@@ -1,0 +1,63 @@
+﻿@page "/login"
+
+@inject IAccountRepository accountRepository
+@inject ILoginService loginService
+@inject NavigationManager navigationManager
+
+
+<h3>Enter password to authenticate</h3>
+
+<EditForm Model="userInfo" OnValidSubmit="Authorize">
+<div class="row">
+    <div class="col-4">
+        <div class="input-group my-3">
+            <input autocomplete="off" @ref="loginInput" type="password" @bind="@userInfo.Password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="password-input" />
+          <button class="btn btn-primary" type="submit" id="password-input">Submit</button>
+        </div>
+    </div>
+</div>
+</EditForm>
+
+@if (showError)
+{
+    <div class="row">
+        <div class="col">
+            <span class="text-danger">@errorMessage</span>
+        </div>
+    </div>
+}
+
+@code {
+    private UserInfo userInfo = new UserInfo();
+    private bool showError;
+    private string errorMessage;
+
+    ElementReference loginInput;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await loginInput.FocusAsync();
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task Authorize()
+    {
+        showError = false;
+
+        try
+        {
+            UserToken userToken = await accountRepository.Login(userInfo);
+            loginService.Login(userToken.Token);
+            navigationManager.NavigateTo("admin");
+        }
+        catch (Exception)
+        {
+
+            errorMessage = $"Invalid password '{userInfo.Password}'";
+            showError = true;
+            userInfo.Password = string.Empty;
+        }
+    }
+}

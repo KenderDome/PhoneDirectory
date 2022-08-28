@@ -1,0 +1,49 @@
+﻿@page "/admin"
+
+@inject IEmployeeRepository employeeRepository
+@inject IDisplayMessage displayMessage
+
+@attribute [Authorize]
+
+
+<PageTitle>Admin</PageTitle>
+
+
+<div class="row mb-3 w-100">
+    <div class="col"><h3>Admin</h3></div>
+    <div class="col text-end">
+        <a class="btn btn-success" href="admin/newemployee">New Employee</a>
+    </div>
+</div>
+
+
+<EmployeeList Delete="Delete" Admin=true />
+
+
+@code {
+
+    private async Task Delete(int id){
+
+        bool reallyDelete = await displayMessage.Confirm("Confirm", "Really Delete?");
+
+        if (reallyDelete)
+        {
+            try
+            {
+                await employeeRepository.Delete(id);
+
+                await displayMessage.ShowSuccessMessage("Success", "Employee deleted.");
+
+
+            }
+            catch (Exception ex)
+            {
+                await displayMessage.ShowErrorMessage("Error", ex.Message);
+                throw;
+            }
+            
+        }
+
+        
+    }
+}
